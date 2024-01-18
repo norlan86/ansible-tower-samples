@@ -1,0 +1,23 @@
+- name: Find, download and apply patches for Windows
+  hosts: windows
+
+  tasks:
+    - name: Use Windows Update to find updated for the default group
+      ansible.windows.win_updates:
+        category_names: '*'
+        state: searched
+      register: patch_results
+
+    - name: Download any updates that were detected previously
+      ansible.windows.win_updates:
+        category_names: '*'
+        state: downloaded
+      when: patch_results.found_update_count | int >= 1
+
+    - name: Apply any patches without rebooting
+      ansible.windows.win_updates:
+        category_names: '*'
+        state: installed
+        reboot: false
+      when: patch_results.found_update_count | int >= 1
+
